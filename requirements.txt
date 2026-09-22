@@ -1,0 +1,10 @@
+ipykernel
+python-dotenv
+langchain-groq
+langgraph
+streamlit
+numpy==1.26.0
+fastapi
+uvicorn[standard]
+supervisor
+slowapi

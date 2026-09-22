@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Azure login using Azure Service Principal
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      # 3. Log in to Azure Container Registry
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}
+
+      # 4. Build and push Docker image using ACR Tasks
+      - name: Build and Push image to ACR
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          az acr build \
+            --registry ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }} \
+            --image ${{ secrets.IMAGE_NAME }}:${IMAGE_TAG} \
+            .
+      
+      # 5. Deploy to Azure Container Apps
+      - name: Deploy to Azure Container App
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          az containerapp update \
+            --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_CONTAINER_RESOURCE_GROUP }} \
+            --image ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}:${IMAGE_TAG}

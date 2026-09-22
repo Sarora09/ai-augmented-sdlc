@@ -1,0 +1,6 @@
+[browser]
+gatherUsageStats = false
+
+[ui]
+hideMenu = true
+hideTopBar = true
